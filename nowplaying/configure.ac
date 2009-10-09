@@ -1,0 +1,37 @@
+##
+## Copyright (c) 2009 Alexey Smirnov <alexey.smirnov@gmx.com>
+##
+## See the file LICENSE for information on usage and redistribution
+## of this file, and for a DISCLAMER OF ALL WARRANTIES.
+##
+
+AC_PREREQ(2.61)
+AC_INIT([nowplaying], [0.1.0], [aysv@users.sourceforge.net])
+
+AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+AM_MAINTAINER_MODE
+
+AC_CONFIG_HEADER(config.h)
+
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LIBTOOL
+AC_CONFIG_MACRO_DIR([m4])
+
+AC_HEADER_STDC
+
+AC_CHECK_HEADERS([deadbeef/deadbeef.h],,
+    [
+     AC_MSG_ERROR([missing required header (see above)])
+    ])
+
+AC_ARG_ENABLE(debug,
+    AC_HELP_STRING([--enable-debug], [enable debugging code]),
+      [
+       AC_DEFINE(HAVE_DEBUG, [1], [define to enable debugging])
+       CFLAGS="$CFLAGS -Wall -g -O0"
+      ])
+
+AC_SUBST([libdir], [$libdir/deadbeef])
+
+AC_OUTPUT([Makefile src/Makefile])
