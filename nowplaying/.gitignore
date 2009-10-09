@@ -1,3 +1,6 @@
+*~
+*.a
+*.swp
 Makefile
 Makefile.in
 aclocal.m4
@@ -11,4 +14,7 @@ ltmain.sh
 m4/
 missing
 src/.deps/
+src/.libs/
+*.l[ao]
+*.o
 stamp-h1

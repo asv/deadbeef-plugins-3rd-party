@@ -13,18 +13,20 @@
 
 #include <deadbeef/deadbeef.h>
 
+#define PLUGIN_NAME "nowplaying"
+
 #ifdef HAVE_DEBUG
-  #define trace(...) \
-    fprintf (stderr, "nowplaying: " __VA_ARGS__);
+  #define trace(format, args...) \
+    fprintf (stderr, PLUGIN_NAME ": " format "\n", ##args);
 #else
-  #define trace(...)
+  #define trace(format, args...)
 #endif
 
 static DB_misc_t plugin;
 static DB_functions_t *deadbeef;
 
-char pathname[1024], config[1024];
-char format[1024] = "%a - %t";
+static char pathname[1024], config[1024];
+static char format[1024] = "%a - %t";
 
 DB_plugin_t *
 nowplaying_load (DB_functions_t *api);
@@ -61,11 +63,11 @@ nowplaying_songstarted (DB_event_song_t *ev, uintptr_t data)
       fputs (playing, out);
       fclose (out);
 
-      trace ("write `%s', length = %d\n", playing, length);
+      trace ("write `%s', length = %d", playing, length);
     }
   else
     {
-      trace ("open `%s' error: %s\n", pathname, strerror (errno));
+      trace ("open `%s' error: %s", pathname, strerror (errno));
     }
 
   return 0;
@@ -74,8 +76,11 @@ nowplaying_songstarted (DB_event_song_t *ev, uintptr_t data)
 static int
 nowplaying_init (void)
 {
-  snprintf (pathname, 1024, "%s/current_song", deadbeef->get_config_dir());
-  snprintf (config, 1024, "%s/nowplaying", deadbeef->get_config_dir());
+  snprintf (pathname, sizeof (pathname),
+            "%s/current_song", deadbeef->get_config_dir());
+
+  snprintf (config, sizeof (config),
+            "%s/nowplaying", deadbeef->get_config_dir());
 
   FILE *cfg_file = fopen (config, "rt");
 
@@ -145,7 +150,7 @@ npformat (DB_playItem_t *song, char *str, size_t size, const char *format)
                       break;
                     default:
                       trace ("warning: unknow conversion type "
-                             "character `%c' in format\n", *(p - 1));
+                             "character `%c' in format", *(p - 1));
                       continue;
                     }
 
@@ -181,8 +186,8 @@ static DB_misc_t plugin = {
     .plugin.version_major = 0,
     .plugin.version_minor = 1,
 
-    .plugin.name          = "nowplaying",
-    .plugin.descr         = "Write to file information about current song",
+    .plugin.name          = PLUGIN_NAME,
+    .plugin.descr         = "Write information about current song into file",
 
     .plugin.author        = "Alexey Smirnov",
     .plugin.email         = "aysv@users.sourceforge.net",
