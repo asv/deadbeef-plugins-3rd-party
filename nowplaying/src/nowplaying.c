@@ -118,6 +118,7 @@ nowplaying_release (void)
 static int
 npformat (DB_playItem_t *song, char *str, size_t size, const char *format)
 {
+  char times[15];
   const char *p = format, *val;
   size_t cur = 0, len, ssize = size - 1;
 
@@ -136,18 +137,36 @@ npformat (DB_playItem_t *song, char *str, size_t size, const char *format)
                 {
                   switch (*p++)
                     {
-                    case 'A':
+                    case 'A': // album
                       val = deadbeef->pl_find_meta (song, "album");
                       break;
-                    case 'a':
+                    case 'a': // artist
                       val = deadbeef->pl_find_meta (song, "artist");
                       break;
-                    case 't':
+                    case 't': // title
                       val = deadbeef->pl_find_meta (song, "title");
                       break;
-                    case 'n':
+                    case 'n': // tracknum
                       val = deadbeef->pl_find_meta (song, "track");
                       break;
+                    case 'F': // format
+                      val = song->filetype;
+                      break;
+                    case 'T': // totaltime
+                        {
+                          int minutes = song->duration / 60,
+                              seconds = song->duration - minutes * 60;
+                          snprintf (times, 14, "%d:%02d", minutes, seconds);
+                          val = times;
+                        }
+                      break;
+                    case 'C': // playtime
+                        {
+                          int minutes = song->playtime / 60,
+                              seconds = song->playtime - minutes * 60;
+                          snprintf (times, 14, "%d:%02d", minutes, seconds);
+                          val = times;
+                        }
                     default:
                       trace ("warning: unknow conversion type "
                              "character `%c' in format", *(p - 1));
