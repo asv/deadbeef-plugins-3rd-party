@@ -154,8 +154,9 @@ npformat (DB_playItem_t *song, char *str, size_t size, const char *format)
                       break;
                     case 'T': // totaltime
                         {
-                          int minutes = song->duration / 60,
-                              seconds = song->duration - minutes * 60;
+                          float duration = deadbeef->pl_get_item_duration (song);
+                          int minutes = duration / 60,
+                              seconds = duration - minutes * 60;
                           snprintf (times, 14, "%d:%02d", minutes, seconds);
                           val = times;
                         }
