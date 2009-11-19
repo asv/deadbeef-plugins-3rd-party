@@ -25,8 +25,8 @@
 static DB_misc_t plugin;
 static DB_functions_t *deadbeef;
 
-static char pathname[1024], config[1024];
-static char format[1024] = "%a - %t";
+static char pathname[1024];
+static char format[1024];
 
 DB_plugin_t *
 nowplaying_load (DB_functions_t *api);
@@ -79,28 +79,8 @@ nowplaying_init (void)
   snprintf (pathname, sizeof (pathname),
             "%s/current_song", deadbeef->get_config_dir());
 
-  snprintf (config, sizeof (config),
-            "%s/nowplaying", deadbeef->get_config_dir());
-
-  FILE *cfg_file = fopen (config, "rt");
-
-  if (cfg_file != NULL)
-    {
-      if (fgets (format, 1024, cfg_file) < 0) {
-          trace ("invalid format");
-          fclose (cfg_file);
-
-          return -1;
-      }
-
-      trace ("read format `%s'", format);
-
-      fclose (cfg_file);
-    }
-  else
-    {
-      trace ("config file `%s' not found. use default settings.", config);
-    }
+  strcpy (format, deadbeef->conf_get_str ("nowplaying.format", "%a - %t"));
+  trace ("read format `%s'", format);
 
   deadbeef->ev_subscribe (DB_PLUGIN (&plugin), DB_EV_SONGSTARTED,
                           DB_CALLBACK (nowplaying_songstarted), 0);
