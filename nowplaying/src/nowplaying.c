@@ -7,17 +7,19 @@
 
 #include "config.h"
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
+
 #include <errno.h>
+#include <limits.h>
 
 #include <deadbeef/deadbeef.h>
 
-#define PLUGIN_NAME "nowplaying"
-
 #ifdef HAVE_DEBUG
   #define trace(format, args...) \
-    fprintf (stderr, PLUGIN_NAME ": " format "\n", ##args);
+    fprintf (stderr, PACKAGE_NAME ": " format "\n", ##args);
 #else
   #define trace(format, args...)
 #endif
@@ -25,7 +27,7 @@
 static DB_misc_t plugin;
 static DB_functions_t *deadbeef;
 
-static char pathname[1024];
+static char location[PATH_MAX];
 static char format[1024];
 
 DB_plugin_t *
@@ -54,9 +56,9 @@ static int
 nowplaying_songstarted (DB_event_song_t *ev, uintptr_t data)
 {
   char playing[1024];
-  size_t length = npformat (ev->song, playing, 1024, format);
+  size_t length = npformat (ev->song, playing, sizeof(playing), format);
 
-  FILE *out = fopen (pathname, "wt");
+  FILE *out = fopen (location, "w+t");
 
   if (out != NULL)
     {
@@ -67,7 +69,7 @@ nowplaying_songstarted (DB_event_song_t *ev, uintptr_t data)
     }
   else
     {
-      trace ("open `%s' error: %s", pathname, strerror (errno));
+      trace ("open `%s' error: %s", location, strerror (errno));
     }
 
   return 0;
@@ -76,11 +78,16 @@ nowplaying_songstarted (DB_event_song_t *ev, uintptr_t data)
 static int
 nowplaying_init (void)
 {
+  char pathname[PATH_MAX];
+
   snprintf (pathname, sizeof (pathname),
             "%s/current_song", deadbeef->get_config_dir());
 
   strcpy (format, deadbeef->conf_get_str ("nowplaying.format", "%a - %t"));
+  strcpy (location, deadbeef->conf_get_str ("nowplaying.location", pathname));
+
   trace ("read format `%s'", format);
+  trace ("read location `%s'", location);
 
   deadbeef->ev_subscribe (DB_PLUGIN (&plugin), DB_EV_SONGSTARTED,
                           DB_CALLBACK (nowplaying_songstarted), 0);
@@ -184,9 +191,9 @@ npformat (DB_playItem_t *song, char *str, size_t size, const char *format)
 static DB_misc_t plugin = {
     DB_PLUGIN_SET_API_VERSION
     .plugin.version_major = 0,
-    .plugin.version_minor = 1,
+    .plugin.version_minor = 2,
 
-    .plugin.name          = PLUGIN_NAME,
+    .plugin.name          = PACKAGE_NAME,
     .plugin.descr         = "Write information about current song into file",
 
     .plugin.author        = "Alexey Smirnov",

@@ -6,7 +6,7 @@
 ##
 
 AC_PREREQ(2.61)
-AC_INIT([nowplaying], [0.1.0], [aysv@users.sourceforge.net])
+AC_INIT([nowplaying], [0.2], [aysv@users.sourceforge.net])
 
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AM_MAINTAINER_MODE
