@@ -27,8 +27,7 @@
 static DB_misc_t plugin;
 static DB_functions_t *deadbeef;
 
-static char location[PATH_MAX];
-static char format[1024];
+static char defpath[PATH_MAX];
 
 DB_plugin_t *
 nowplaying_load (DB_functions_t *api);
@@ -56,9 +55,12 @@ static int
 nowplaying_songstarted (DB_event_track_t *ev, uintptr_t data)
 {
   char playing[1024];
-  size_t length = npformat (ev->track, playing, sizeof(playing), format);
+  size_t length =
+    npformat (ev->track, playing, sizeof(playing),
+              deadbeef->conf_get_str ("nowplaying.format", "%a - %t"));
 
-  FILE *out = fopen (location, "w+t");
+  FILE *out =
+    fopen (deadbeef->conf_get_str ("nowplaying.location", defpath), "w+t");
 
   if (out != NULL)
     {
@@ -69,7 +71,9 @@ nowplaying_songstarted (DB_event_track_t *ev, uintptr_t data)
     }
   else
     {
-      trace ("open `%s' error: %s", location, strerror (errno));
+      trace ("open `%s' error: %s",
+             deadbeef->conf_get_str ("nowplaying.location", defpath),
+             strerror (errno));
     }
 
   return 0;
@@ -78,16 +82,8 @@ nowplaying_songstarted (DB_event_track_t *ev, uintptr_t data)
 static int
 nowplaying_init (void)
 {
-  char pathname[PATH_MAX];
-
-  snprintf (pathname, sizeof (pathname),
+  snprintf (defpath, sizeof (defpath),
             "%s/current_song", deadbeef->get_config_dir());
-
-  strcpy (format, deadbeef->conf_get_str ("nowplaying.format", "%a - %t"));
-  strcpy (location, deadbeef->conf_get_str ("nowplaying.location", pathname));
-
-  trace ("read format `%s'", format);
-  trace ("read location `%s'", location);
 
   deadbeef->ev_subscribe (DB_PLUGIN (&plugin), DB_EV_SONGSTARTED,
                           DB_CALLBACK (nowplaying_songstarted), 0);
