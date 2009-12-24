@@ -34,7 +34,7 @@ DB_plugin_t *
 nowplaying_load (DB_functions_t *api);
 
 static int
-nowplaying_songstarted (DB_event_song_t *ev, uintptr_t data);
+nowplaying_songstarted (DB_event_track_t *ev, uintptr_t data);
 
 static int
 nowplaying_init (void);
@@ -53,10 +53,10 @@ nowplaying_load (DB_functions_t *api)
 }
 
 static int
-nowplaying_songstarted (DB_event_song_t *ev, uintptr_t data)
+nowplaying_songstarted (DB_event_track_t *ev, uintptr_t data)
 {
   char playing[1024];
-  size_t length = npformat (ev->song, playing, sizeof(playing), format);
+  size_t length = npformat (ev->track, playing, sizeof(playing), format);
 
   FILE *out = fopen (location, "w+t");
 
@@ -188,6 +188,10 @@ npformat (DB_playItem_t *song, char *str, size_t size, const char *format)
   return cur;
 }
 
+static const char settings_dlg[] =
+    "property Format entry nowplaying.format \"\";\n"
+    "property Location entry nowplaying.location \"\";\n";
+
 static DB_misc_t plugin = {
     DB_PLUGIN_SET_API_VERSION
     .plugin.version_major = 0,
@@ -202,6 +206,8 @@ static DB_misc_t plugin = {
 
     .plugin.start         = nowplaying_init,
     .plugin.stop          = nowplaying_release,
+
+    .plugin.configdialog  = settings_dlg,
 
     .plugin.type          = DB_PLUGIN_MISC
 };
